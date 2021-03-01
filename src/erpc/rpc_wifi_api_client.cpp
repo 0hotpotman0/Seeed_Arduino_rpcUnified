@@ -4879,6 +4879,105 @@ int32_t rpc_pbuf_free(const binary_t * p)
     return result;
 }
 
+// rpc_wifi_tcpip interface rpc_ip4addr_ntoa function client shim.
+char * rpc_ip4addr_ntoa(const binary_t * ip4_addr_in)
+{
+    erpc_status_t err = kErpcStatus_Success;
+
+    char * result = NULL;
+
+    // Get a new request.
+    RequestContext request = g_client->createRequest(false);
+
+    // Encode the request.
+    Codec * codec = request.getCodec();
+
+    if (codec == NULL)
+    {
+        err = kErpcStatus_MemoryError;
+    }
+    else
+    {
+        codec->startWriteMessage(kInvocationMessage, krpc_wifi_tcpip_service_id, krpc_wifi_tcpip_rpc_ip4addr_ntoa_id, request.getSequence());
+
+        write_binary_t_struct(codec, ip4_addr_in);
+
+        // Send message to server
+        // Codec status is checked inside this function.
+        g_client->performRequest(request);
+
+        uint32_t return_len;
+        char * return_local;
+        codec->readString(&return_len, &return_local);
+        result = (char *) erpc_malloc((return_len + 1) * sizeof(char));
+        if (result == NULL)
+        {
+            codec->updateStatus(kErpcStatus_MemoryError);
+        }
+        else
+        {
+            memcpy(result, return_local, return_len);
+            (result)[return_len] = 0;
+        }
+
+        err = codec->getStatus();
+    }
+
+    // Dispose of the request.
+    g_client->releaseRequest(request);
+
+    // Invoke error handler callback function
+    g_client->callErrorHandler(err, krpc_wifi_tcpip_rpc_ip4addr_ntoa_id);
+
+    return result;
+}
+
+// rpc_wifi_tcpip interface rpc_inet_chksum function client shim.
+uint16_t rpc_inet_chksum(const binary_t * dataptr_in)
+{
+    erpc_status_t err = kErpcStatus_Success;
+
+    uint16_t result;
+
+    // Get a new request.
+    RequestContext request = g_client->createRequest(false);
+
+    // Encode the request.
+    Codec * codec = request.getCodec();
+
+    if (codec == NULL)
+    {
+        err = kErpcStatus_MemoryError;
+    }
+    else
+    {
+        codec->startWriteMessage(kInvocationMessage, krpc_wifi_tcpip_service_id, krpc_wifi_tcpip_rpc_inet_chksum_id, request.getSequence());
+
+        write_binary_t_struct(codec, dataptr_in);
+
+        // Send message to server
+        // Codec status is checked inside this function.
+        g_client->performRequest(request);
+
+        codec->read(&result);
+
+        err = codec->getStatus();
+    }
+
+    // Dispose of the request.
+    g_client->releaseRequest(request);
+
+    // Invoke error handler callback function
+    g_client->callErrorHandler(err, krpc_wifi_tcpip_rpc_inet_chksum_id);
+
+    if (err)
+    {
+        return 0xFFFFU;
+    }
+
+    return result;
+}
+
 // rpc_wifi_lwip interface rpc_lwip_accept function client shim.
 int32_t rpc_lwip_accept(int32_t s, const binary_t * addr, uint32_t * addrlen)
 {
